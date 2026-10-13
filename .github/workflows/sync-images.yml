@@ -68,7 +68,7 @@ jobs:
           fi
 
 
-          COUNT=$(yq '.images | length' images.yml)
+          COUNT=$(yq -r '.images | length' images.yml)
 
 
           if [ "$COUNT" -eq 0 ]; then
@@ -80,9 +80,9 @@ jobs:
           for i in $(seq 0 $((COUNT-1)))
           do
 
-            NAME=$(yq ".images[$i].name" images.yml)
-            SOURCE=$(yq ".images[$i].source" images.yml)
-            TAG=$(yq ".images[$i].tag" images.yml)
+            NAME=$(yq -r ".images[$i].name" images.yml)
+            SOURCE=$(yq -r ".images[$i].source" images.yml)
+            TAG=$(yq -r ".images[$i].tag" images.yml)
 
 
             echo "=============================="
