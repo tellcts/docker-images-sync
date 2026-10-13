@@ -1,7 +1,47 @@
 images:
   - name: nginx
     source: nginx
-    tag: latest
+    tag: 1.30.5
+
+  - name: ubuntu
+    source: ubuntu
+    tag: 24.04
+
+  - name: postgres
+    source: postgres
+    tag: 18.6
+
+  - name: mysql
+    source: mysql
+    tag: 8.4.11
+
+  - name: redis
+    source: redis
+    tag: 7.4.11
+
+  - name: alpine
+    source: alpine
+    tag: 3.23.6
+
+  - name: debian
+    source: debian
+    tag: trixie
+
+  - name: mongo
+    source: mongo
+    tag: 8.3.11
+
+  - name: prometheus
+    source: prom/prometheus
+    tag: v3.13.4
+
+  - name: node-exporter
+    source: prom/node-exporter
+    tag: v1.11.1
+
+  - name: grafana
+    source: grafana/grafana
+    tag: 13.2.3
 
   - name: texlive
     source: texlive/texlive
