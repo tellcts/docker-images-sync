@@ -1,0 +1,4 @@
+images:
+  - name: nginx
+    source: nginx
+    tag: latest

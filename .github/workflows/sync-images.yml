@@ -1,0 +1,122 @@
+name: Sync Images to GHCR
+
+
+on:
+  push:
+    branches:
+      - main
+
+  schedule:
+    # 北京时间每天 08:00
+    # UTC 00:00
+    - cron: "0 0 * * *"
+
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+  packages: write
+
+
+env:
+  REGISTRY: ghcr.io
+
+
+jobs:
+
+  sync:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+
+      - name: Install yq
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y yq
+
+
+      - name: Login GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Sync images
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+        run: |
+          set -euo pipefail
+
+
+          if [ ! -f images.yml ]; then
+            echo "images.yml missing"
+            exit 1
+          fi
+
+
+          COUNT=$(yq '.images | length' images.yml)
+
+
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No images configured"
+            exit 0
+          fi
+
+
+          for i in $(seq 0 $((COUNT-1)))
+          do
+
+            NAME=$(yq ".images[$i].name" images.yml)
+            SOURCE=$(yq ".images[$i].source" images.yml)
+            TAG=$(yq ".images[$i].tag" images.yml)
+
+
+            echo "=============================="
+            echo "Sync ${SOURCE}:${TAG}"
+            echo "=============================="
+
+
+            TARGET="${REGISTRY}/${OWNER}/${NAME}"
+
+
+            echo "Pull linux/amd64 image"
+
+            docker pull \
+              --platform linux/amd64 \
+              "${SOURCE}:${TAG}"
+
+
+            echo "Tag image"
+
+            docker tag \
+              "${SOURCE}:${TAG}" \
+              "${TARGET}:${TAG}"
+
+
+            echo "Push image"
+
+            docker push \
+              "${TARGET}:${TAG}"
+
+
+          done
+
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker system prune -af
