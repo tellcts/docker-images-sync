@@ -2,3 +2,7 @@ images:
   - name: nginx
     source: nginx
     tag: latest
+
+  - name: texlive
+    source: texlive/texlive
+    tag: latest
