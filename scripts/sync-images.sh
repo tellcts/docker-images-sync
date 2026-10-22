@@ -23,6 +23,8 @@ inspect_digest() {
   local image_ref=$1
 
   skopeo inspect \
+    --override-os linux \
+    --override-arch amd64 \
     --format '{{.Digest}}' \
     "docker://${image_ref}"
 }
@@ -49,10 +51,11 @@ copy_image() {
   local source_ref=$1
   local target_ref=$2
 
-  echo "Copying all available architectures: ${source_ref} -> ${target_ref}"
+  echo "Copying linux/amd64: ${source_ref} -> ${target_ref}"
   skopeo copy \
-    --all \
     --preserve-digests \
+    --override-os linux \
+    --override-arch amd64 \
     "docker://${source_ref}" \
     "docker://${target_ref}"
 }

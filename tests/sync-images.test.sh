@@ -155,11 +155,11 @@ test_fixed_tag_already_exists_is_skipped() {
   run_sync
 
   assert_exit_code 0
-  assert_log_contains 'inspect --format {{.Digest}} docker://ghcr.io/tellcts/nginx:1.30.5'
+  assert_log_contains 'inspect --override-os linux --override-arch amd64 --format {{.Digest}} docker://ghcr.io/tellcts/nginx:1.30.5'
   assert_log_not_contains 'copy'
 }
 
-test_fixed_tag_missing_is_copied_as_multiarch() {
+test_fixed_tag_missing_is_copied_as_amd64() {
   TEST_COUNT=$((TEST_COUNT + 1))
   create_fakes
 
@@ -168,7 +168,7 @@ test_fixed_tag_missing_is_copied_as_multiarch() {
   run_sync
 
   assert_exit_code 0
-  assert_log_contains 'copy --all --preserve-digests docker://nginx:1.30.5 docker://ghcr.io/tellcts/nginx:1.30.5'
+  assert_log_contains 'copy --preserve-digests --override-os linux --override-arch amd64 docker://nginx:1.30.5 docker://ghcr.io/tellcts/nginx:1.30.5'
 }
 
 test_latest_unchanged_is_skipped() {
@@ -183,10 +183,11 @@ test_latest_unchanged_is_skipped() {
 
   assert_exit_code 0
   assert_log_contains 'docker://nginx:latest'
+  assert_log_contains 'inspect --override-os linux --override-arch amd64 --format {{.Digest}} docker://nginx:latest'
   assert_log_not_contains 'copy'
 }
 
-test_latest_changed_is_copied_as_multiarch() {
+test_latest_changed_is_copied_as_amd64() {
   TEST_COUNT=$((TEST_COUNT + 1))
   create_fakes
 
@@ -197,7 +198,7 @@ test_latest_changed_is_copied_as_multiarch() {
   run_sync
 
   assert_exit_code 0
-  assert_log_contains 'copy --all --preserve-digests docker://nginx:latest docker://ghcr.io/tellcts/nginx:latest'
+  assert_log_contains 'copy --preserve-digests --override-os linux --override-arch amd64 docker://nginx:latest docker://ghcr.io/tellcts/nginx:latest'
 }
 
 test_target_lookup_error_fails_without_copy() {
@@ -240,14 +241,14 @@ test_multiple_tags_are_processed_independently() {
   assert_exit_code 0
   assert_copy_count 1
   assert_log_contains 'docker://ghcr.io/tellcts/nginx:1.30.5'
-  assert_log_contains 'copy --all --preserve-digests docker://nginx:latest docker://ghcr.io/tellcts/nginx:latest'
-  assert_log_not_contains 'copy --all --preserve-digests docker://nginx:1.30.5'
+  assert_log_contains 'copy --preserve-digests --override-os linux --override-arch amd64 docker://nginx:latest docker://ghcr.io/tellcts/nginx:latest'
+  assert_log_not_contains 'copy --preserve-digests --override-os linux --override-arch amd64 docker://nginx:1.30.5'
 }
 
 test_fixed_tag_already_exists_is_skipped
-test_fixed_tag_missing_is_copied_as_multiarch
+test_fixed_tag_missing_is_copied_as_amd64
 test_latest_unchanged_is_skipped
-test_latest_changed_is_copied_as_multiarch
+test_latest_changed_is_copied_as_amd64
 test_target_lookup_error_fails_without_copy
 test_source_lookup_error_for_latest_fails_without_copy
 test_multiple_tags_are_processed_independently
