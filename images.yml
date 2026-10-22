@@ -1,7 +1,9 @@
 images:
   - name: nginx
     source: nginx
-    tag: 1.30.5
+    tag:
+      - 1.30.5
+      - latest
 
   - name: ubuntu
     source: ubuntu
