@@ -1,4 +1,4 @@
-# Docker Images Sync
+# 🐳 Docker Images Sync
 
 [![Sync Images to GHCR](https://github.com/tellcts/docker-images-sync/actions/workflows/sync-images.yml/badge.svg?branch=main)](https://github.com/tellcts/docker-images-sync/actions/workflows/sync-images.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
@@ -11,21 +11,57 @@
 > [!IMPORTANT]
 > 当前仅同步 `linux/amd64` 镜像。使用 `linux/arm64` 的设备无法从本项目新建的固定标签中拉取匹配架构。
 
-## 目录
+<a id="usage-modes"></a>
+## 🚏 两种使用方式
 
-- [功能](#功能)
-- [工作原理](#工作原理)
-- [快速开始](#快速开始)
-- [同步规则](#同步规则)
-- [使用同步镜像](#使用同步镜像)
-- [注意事项](#注意事项)
-- [本地运行](#本地运行)
-- [项目结构](#项目结构)
-- [贡献](#贡献)
-- [许可与合规](#许可与合规)
-- [免责声明](#免责声明)
+你可以直接使用作者已同步的镜像，也可以 Fork 本项目并同步到自己的 GHCR。
 
-## 功能
+| 使用方式 | 镜像地址 | 适合场景 |
+| --- | --- | --- |
+| 直接使用作者镜像 | `ghcr.io/tellcts/<name>:<tag>` | 想立即使用，不维护 Actions |
+| 自行同步 | `ghcr.io/<your-owner>/<name>:<tag>` | 需要独立存储、权限和更新控制 |
+
+### ⚡ 直接使用作者镜像
+
+如果对应 GHCR Package 已公开，可以直接拉取：
+
+```bash
+docker pull ghcr.io/tellcts/nginx:1.30.5
+docker pull ghcr.io/tellcts/postgres:18.6
+```
+
+作者维护的镜像没有可用性 SLA，标签列表可能随 [`images.yml`](images.yml) 调整。匿名拉取失败时，Package 可能尚未公开，或者需要登录 GHCR。
+
+生产环境或需要长期稳定版本时，更推荐自行同步。
+
+### 🛠️ 自行同步
+
+Fork 本项目并启用 Actions 后，镜像会同步到你自己的 GHCR：
+
+```text
+ghcr.io/<your-owner>/<name>:<tag>
+```
+
+你拥有独立的目标 Package、权限、存储和配置，不受作者仓库后续标签调整影响。具体步骤见[快速开始](#quick-start)。
+
+<a id="toc"></a>
+## 📚 目录
+
+- [使用方式](#usage-modes)
+- [功能](#features)
+- [工作原理](#how-it-works)
+- [快速开始](#quick-start)
+- [同步规则](#sync-rules)
+- [使用同步镜像](#use-images)
+- [注意事项](#notes)
+- [本地运行](#local-run)
+- [项目结构](#project-structure)
+- [贡献](#contributing)
+- [许可与合规](#license)
+- [免责声明](#disclaimer)
+
+<a id="features"></a>
+## ✨ 功能
 
 - **增量同步**：GHCR 中已存在的固定标签直接跳过，不重复推送或改写元数据。
 - **更新 `latest`**：仅当源镜像与 GHCR 的 `linux/amd64` digest 不同时才更新。
@@ -37,7 +73,8 @@
 
 本项目负责**复制镜像**，不是镜像构建、漏洞扫描、签名验证或供应链审计工具。
 
-## 工作原理
+<a id="how-it-works"></a>
+## 🧭 工作原理
 
 ```mermaid
 flowchart TD
@@ -59,9 +96,10 @@ flowchart TD
 4. 读取 `images.yml` 并逐个处理镜像标签。
 5. 使用 `skopeo copy --preserve-digests --override-os linux --override-arch amd64` 复制缺失或需要更新的镜像。
 
-## 快速开始
+<a id="quick-start"></a>
+## 🚀 快速开始
 
-### 1. Fork 或导入仓库
+### 1️⃣ Fork 或导入仓库
 
 Fork 本项目，或在 GitHub 上创建自己的仓库并导入这些文件。
 
@@ -77,7 +115,7 @@ ghcr.io/<owner>/<name>:<tag>
 ghcr.io/tellcts/nginx:1.30.5
 ```
 
-### 2. 启用 Actions
+### 2️⃣ 启用 Actions
 
 进入仓库的 **Actions** 页面，确认工作流已启用。
 
@@ -89,7 +127,7 @@ permissions:
   packages: write
 ```
 
-### 3. 配置镜像
+### 3️⃣ 配置镜像
 
 编辑 [`images.yml`](images.yml)：
 
@@ -116,7 +154,7 @@ images:
 
 建议为所有标签加引号，避免 `18.6`、`latest` 等内容被 YAML 或命令解析为其他类型。
 
-### 4. 运行同步
+### 4️⃣ 运行同步
 
 工作流会在以下时机运行：
 
@@ -132,7 +170,8 @@ GitHub 的定时任务不保证精确到分钟。在 Actions 高负载时，定�
 
 定时任务只从仓库默认分支运行。公开仓库长期没有活动时，GitHub 可能自动停用定时工作流；重新推送提交或在 Actions 页面手动运行后可恢复。
 
-## 同步规则
+<a id="sync-rules"></a>
+## 📋 同步规则
 
 | 标签类型 | GHCR 状态 | 行为 |
 | --- | --- | --- |
@@ -145,7 +184,8 @@ GitHub 的定时任务不保证精确到分钟。在 Actions 高负载时，定�
 
 标签名称必须**完全等于** `latest` 才会触发 digest 比较。`stable`、`main`、`trixie` 等其他移动标签仍按固定标签处理。
 
-## 使用同步镜像
+<a id="use-images"></a>
+## 📦 使用同步镜像
 
 同步完成后，可把原来的 Docker Hub 地址：
 
@@ -168,9 +208,10 @@ docker pull ghcr.io/tellcts/nginx:1.30.5
 
 推荐使用 GitHub Personal Access Token 或 GitHub Actions 的 `GITHUB_TOKEN`，不要使用账号密码。
 
-## 注意事项
+<a id="notes"></a>
+## ⚠️ 注意事项
 
-### 仅支持 `linux/amd64`
+### 🖥️ 仅支持 `linux/amd64`
 
 所有新建和更新的标签均为单平台镜像：
 
@@ -182,7 +223,7 @@ linux/amd64
 
 如果 GHCR 中存在由旧版本工作流同步的多架构标签，当前固定标签策略不会自动修改它，仓库可能出现单架构与多架构标签并存的状态。需要统一架构时，应先确认影响，再删除目标标签并重新同步。
 
-### 固定标签不会自动刷新
+### 📌 固定标签不会自动刷新
 
 固定标签只要在 GHCR 中存在就会被跳过。即使上游使用同名标签重新发布了不同内容，本项目也不会自动覆盖。
 
@@ -193,7 +234,7 @@ linux/amd64
 
 删除镜像标签是不可逆操作，可能影响正在使用该标签的服务。生产环境应优先使用不可变版本号或 digest，并保留回滚方案。
 
-### GHCR Package 可见性
+### 🔐 GHCR Package 可见性
 
 首次同步可能创建新的 GHCR Package。Package 的可见性通常会继承仓库或组织设置，但 GitHub 的默认行为可能发生变化。
 
@@ -204,7 +245,7 @@ linux/amd64
 - 匿名拉取是否需要额外配置。
 - 组织成员或其他仓库是否有读取权限。
 
-### Docker Hub 限流
+### 🚦 Docker Hub 限流
 
 工作流目前使用匿名方式读取 Docker Hub。同步可能受到 Docker Hub 的限流、镜像暂时不可用或上游标签删除影响。
 
@@ -212,17 +253,17 @@ Docker Hub 的限流策略可能变化，本项目不保证上游拉取始终成
 
 当前工作流没有配置 Docker Hub 凭据，因此不能直接同步需要登录才能访问的私有 Docker Hub 镜像。
 
-### 镜像不是即时更新
+### ⏳ 镜像不是即时更新
 
 镜像仅在 `main` 推送、每日定时或手动触发时同步。GitHub Actions 可能排队，Docker Hub 也可能延迟更新标签。
 
 如果业务需要版本可复现，请使用固定版本或把镜像固定到 digest，不要依赖 `latest`。
 
-### 工作流不会删除镜像
+### 🗑️ 工作流不会删除镜像
 
 从 `images.yml` 中移除配置不会删除 GHCR 中已有的 Package 或标签。清理旧镜像需要手动操作，并应确认是否有服务仍依赖它们。
 
-### 同步前测试是强制门禁
+### ✅ 同步前测试是强制门禁
 
 工作流会先运行：
 
@@ -232,7 +273,8 @@ bash tests/sync-images.test.sh
 
 测试失败时，安装工具、登录 GHCR 和同步镜像步骤都不会执行。这能防止错误逻辑覆盖现有镜像，也会使 CI 直接显示为失败。
 
-## 本地运行
+<a id="local-run"></a>
+## 🧪 本地运行
 
 需要 Linux 或兼容的 Bash 环境，以及：
 
@@ -272,7 +314,8 @@ bash scripts/sync-images.sh
 IMAGES_FILE=/path/to/images.yml bash scripts/sync-images.sh
 ```
 
-## 项目结构
+<a id="project-structure"></a>
+## 📁 项目结构
 
 ```text
 .
@@ -284,7 +327,8 @@ IMAGES_FILE=/path/to/images.yml bash scripts/sync-images.sh
 └── README.md
 ```
 
-## 贡献
+<a id="contributing"></a>
+## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request。
 
@@ -293,15 +337,16 @@ IMAGES_FILE=/path/to/images.yml bash scripts/sync-images.sh
 - 请保持改动聚焦，避免把无关功能混入同一个 PR。
 - 不要在配置中加入无权复制、分发或公开的私有镜像和受限镜像。
 
-## 许可与合规
+<a id="license"></a>
+## ⚖️ 许可与合规
 
-### 本项目代码
+### 📄 本项目代码
 
 本仓库中的源代码和文档采用 [MIT License](LICENSE)。
 
 你可以复制、修改、分发或商业使用本项目代码，但必须保留原始版权声明和许可证文本。
 
-### 同步的镜像
+### 🖼️ 同步的镜像
 
 **MIT License 仅适用于本仓库，不适用于通过本项目同步的任何上游镜像。**
 
@@ -314,7 +359,7 @@ IMAGES_FILE=/path/to/images.yml bash scripts/sync-images.sh
 
 同步到 GHCR 不会改变镜像的许可证，也不表示镜像可以无条件公开再分发。请在配置和发布镜像前确认上游许可；对敏感、专有或商业受限镜像，优先使用私有 GHCR Package，并限制访问权限。
 
-### 第三方工具
+### 🧰 第三方工具
 
 - [Skopeo](https://github.com/containers/skopeo) 遵循其自身许可证。
 - [GitHub Actions](https://docs.github.com/actions) 受 GitHub 服务条款约束。
@@ -323,7 +368,8 @@ IMAGES_FILE=/path/to/images.yml bash scripts/sync-images.sh
 
 本项目与 Docker, Inc.、GitHub, Inc. 及各镜像维护者没有隶属或背书关系。
 
-## 免责声明
+<a id="disclaimer"></a>
+## 🛡️ 免责声明
 
 本项目按“现状”提供，不附带任何明示或暗示担保。
 
